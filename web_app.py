@@ -36,3 +36,14 @@ def create_user(name: str, email: str, db: Session = Depends(get_db)):
     db.refresh(new_user)
     
     return {"status": "User created", "user": new_user}
+
+@app.get("/users/")
+def get_all_users(db: Session = Depends(get_db)):
+    """
+    Fetches all user records from the database.
+    Equivalent to: User::all() in Laravel.
+    """
+    # Query the database for all records in the User table
+    users = db.query(User).all()
+   
+    return {"total_users": len(users), "users": users}
