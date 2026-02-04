@@ -1,23 +1,26 @@
+import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Define the database connection URL (SQLite for local development)
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+# Load the variables from the .env file
+load_dotenv()
+
+# Professional English Comment: Fetch the URL from environment variables
+# This is equivalent to using env('DATABASE_URL') in Laravel
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Create the SQLAlchemy engine
-# Professional Comment: 'check_same_thread' is required only for SQLite
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 
-# Create a SessionLocal class for database transactions
+# Session and Base setup remains the same
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Base class for our database models to inherit from
 Base = declarative_base()
 
-# Define the User Model (Equivalent to a Laravel Migration + Model)
+# Define the User Model
 class User(Base):
     __tablename__ = "users"
 
@@ -25,6 +28,5 @@ class User(Base):
     name = Column(String)
     email = Column(String, unique=True, index=True)
 
-# Function to create the tables in the database
 def create_tables():
     Base.metadata.create_all(bind=engine)
