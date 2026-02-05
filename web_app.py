@@ -54,3 +54,37 @@ def get_all_users(db: Session = Depends(get_db)):
     users = db.query(User).all()
    
     return users
+
+# UPDATE a user (Equivalent to Laravel's update method)
+@app.put("/users/{user_id}", response_model=schemas.UserResponse)
+def update_user(user_id: int, updated_user: schemas.UserUpdate, db: Session = Depends(get_db)):
+    # 1. Fetch the user from the database
+    db_user = db.query(User).filter(User.id == user_id).first()
+    
+    # 2. Raise 404 error if user doesn't exist
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # 3. Update the fields
+    db_user.name = updated_user.name
+    db_user.email = updated_user.email
+    
+    # 4. Commit and Refresh the record
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+# DELETE a user (Equivalent to Laravel's destroy method)
+@app.delete("/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    # 1. Fetch the user
+    db_user = db.query(User).filter(User.id == user_id).first()
+    
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # 2. Remove the user and commit
+    db.delete(db_user)
+    db.commit()
+    
+    return {"message": f"User with ID {user_id} successfully deleted"}
