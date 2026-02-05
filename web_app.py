@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import SessionLocal, User, create_tables
+import schemas
 
 # Initialize database tables
 create_tables()
@@ -19,14 +20,20 @@ def get_db():
 def read_root():
     return {"message": "Database API is active!"}
 
-@app.post("/users/")
-def create_user(name: str, email: str, db: Session = Depends(get_db)):
+@app.post("/users/", response_model=schemas.UserResponse)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """
     Creates a new user in the database.
     Equivalent to: User::create(['name' => $name, 'email' => $email]) in Laravel.
     """
+
+    # Check if user already exists (Standard API practice)
+    db_user = db.query(User).filter(User.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
     # Create a new User instance
-    new_user = User(name=name, email=email)
+    new_user = User(name=user.name, email=user.email)
     
     # Add to session and commit to database
     db.add(new_user)
@@ -35,9 +42,9 @@ def create_user(name: str, email: str, db: Session = Depends(get_db)):
     # Refresh to get the generated ID
     db.refresh(new_user)
     
-    return {"status": "User created", "user": new_user}
+    return new_user
 
-@app.get("/users/")
+@app.get("/users/", response_model=list[schemas.UserResponse])
 def get_all_users(db: Session = Depends(get_db)):
     """
     Fetches all user records from the database.
@@ -46,4 +53,4 @@ def get_all_users(db: Session = Depends(get_db)):
     # Query the database for all records in the User table
     users = db.query(User).all()
    
-    return {"total_users": len(users), "users": users}
+    return users
