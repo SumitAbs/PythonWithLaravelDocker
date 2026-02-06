@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 # Corrected Professional Imports
-from app.database import SessionLocal, engine, Base 
+from app.core.database import SessionLocal, engine, Base 
 from app.models import user as models
 from app.schemas import user as schemas
 

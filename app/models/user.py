@@ -1,12 +1,13 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from app.database import Base
+from app.core.database import Base
 
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
     email = Column(String, unique=True, index=True)
+    hashed_password = Column(String) # Never store plain passwords
 
     # Professional Comment: Define the relationship to Tasks
     # Equivalent to $this->hasMany(Task::class) in Laravel
