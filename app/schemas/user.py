@@ -27,10 +27,10 @@ class TaskResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# Response schema that nests tasks [cite: 2026-02-02]
+# Response schema that nests tasks
 class UserResponse(UserBase):
     id: int
-    tasks: list[TaskResponse] = [] # Nested relationship [cite: 2026-02-02]
+    tasks: list[TaskResponse] = [] # Nested relationship
 
     class Config:
         from_attributes = True

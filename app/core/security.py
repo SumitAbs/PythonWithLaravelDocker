@@ -6,10 +6,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Setup password hashing algorithm [cite: 2026-02-02]
+# Setup password hashing algorithm
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Configuration for JWT [cite: 2026-02-02]
+# Configuration for JWT
 SECRET_KEY = os.getenv("SECRET_KEY", "your_default_secret_for_dev")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
