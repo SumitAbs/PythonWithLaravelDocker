@@ -78,3 +78,19 @@ def get_user_profile(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User profile not found")
     
     return db_user
+
+@app.post("/users/{user_id}/tasks/", response_model=schemas.TaskResponse)
+def create_task_for_user(
+    user_id: int, 
+    task: schemas.TaskCreate, 
+    db: Session = Depends(get_db)
+):
+    """
+    Creates a task owned by a specific user.
+    Equivalent to $user->tasks()->create([...]) in Laravel.
+    """
+    new_task = models.Task(**task.dict(), owner_id=user_id)
+    db.add(new_task)
+    db.commit()
+    db.refresh(new_task)
+    return new_task
