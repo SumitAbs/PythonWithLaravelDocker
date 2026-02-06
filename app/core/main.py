@@ -107,23 +107,24 @@ def create_task_for_user(
     db.refresh(new_task)
     return new_task
 
+
 @app.post("/token")
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(), 
     db: Session = Depends(get_db)
 ):
-    # 1. Find user by email (OAuth2 uses 'username' field for the email/id)
+    # 1. Look for the user in the database by email [cite: 2026-02-02]
     user = db.query(models.User).filter(models.User.email == form_data.username).first()
     
-    # 2. Verify existence and password
+    # 2. Verify if user exists and if the provided password matches the hash [cite: 2026-02-02]
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
-            status_code=401, 
+            status_code=401,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # 3. Create JWT Token
+    # 3. Generate the JWT token [cite: 2026-02-02]
     access_token = create_access_token(data={"sub": user.email})
     
     return {"access_token": access_token, "token_type": "bearer"}
