@@ -2,6 +2,10 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.security import hash_password # Import our hashing utility
 
+from datetime import timedelta
+from fastapi.security import OAuth2PasswordRequestForm
+from app.core.security import verify_password, create_access_token
+
 # Corrected Professional Imports
 from app.core.database import SessionLocal, engine, Base 
 from app.models import user as models
@@ -102,3 +106,24 @@ def create_task_for_user(
     db.commit()
     db.refresh(new_task)
     return new_task
+
+@app.post("/token")
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), 
+    db: Session = Depends(get_db)
+):
+    # 1. Find user by email (OAuth2 uses 'username' field for the email/id)
+    user = db.query(models.User).filter(models.User.email == form_data.username).first()
+    
+    # 2. Verify existence and password
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=401, 
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # 3. Create JWT Token
+    access_token = create_access_token(data={"sub": user.email})
+    
+    return {"access_token": access_token, "token_type": "bearer"}
