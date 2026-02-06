@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from app.core.security import hash_password # Import our hashing utility
 
 # Corrected Professional Imports
 from app.core.database import SessionLocal, engine, Base 
@@ -31,7 +32,14 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    new_user = models.User(name=user.name, email=user.email)
+    # 2. Hash the password
+    hashed_pwd = hash_password(user.password)
+
+    new_user = models.User(
+        name=user.name,
+        email=user.email,
+        hashed_password=hashed_pwd
+    )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -89,7 +97,7 @@ def create_task_for_user(
     Creates a task owned by a specific user.
     Equivalent to $user->tasks()->create([...]) in Laravel.
     """
-    new_task = models.Task(**task.dict(), owner_id=user_id)
+    new_task = models.Task(**task.model_dump(), owner_id=user_id)
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
